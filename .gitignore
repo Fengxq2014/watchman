@@ -1,4 +1,6 @@
-
+.idea
+debug
+.vscode
 # Created by https://www.gitignore.io/api/go
 
 ### Go ###
@@ -21,5 +23,6 @@
 run/*
 log/
 vendor/
+.dead/
 
 # End of https://www.gitignore.io/api/go

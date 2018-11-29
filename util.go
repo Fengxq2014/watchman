@@ -27,7 +27,6 @@ func PanicOnError(err error) {
 
 func setupChannel() (*amqp.Connection, *amqp.Channel, error) {
 	url := os.Getenv("AMQP_URL")
-
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		LogOnError(err)

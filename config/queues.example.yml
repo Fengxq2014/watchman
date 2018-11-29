@@ -1,17 +1,17 @@
 projects:
-  - name: finance
+  - name: epaytest
     queues_default:
-      notify_base: "http://localhost:8080"
+      notify_base: "http://10.165.59.160:9981"
       notify_timeout: 5
-      retry_times: 40
-      retry_duration: 300
-      binding_exchange: fishtrip
+      retry_times: 2
+      retry_duration: 30
+      binding_exchange: epay
     queues:
-      - queue_name: "processor"
-        notify_path: "/test.html" 
+      - queue_name: "ordernotify"
+        notify_path: "/notify/order"
         routing_key:
-          - "order.state.paid"
-      - queue_name: "wakasms.orders"
-        notify_path: "/test.html" 
-        routing_key:
-          - "order.state.*"
+          - "ordernotify"
+      #- queue_name: "orders"
+      #  notify_path: "/test.html"
+      #  routing_key:
+      #    - "order"

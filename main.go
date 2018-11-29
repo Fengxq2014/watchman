@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookgo/pidfile"
+	"github.com/joho/godotenv"
 	uuid "github.com/satori/go.uuid"
 	"github.com/streadway/amqp"
 )
@@ -64,7 +66,13 @@ func receiveMessage(queues []*QueueConfig, done <-chan struct{}) <-chan Message 
 						time.Sleep(5 * time.Second)
 						continue RECONNECT
 					}
-					msg.MessageId = fmt.Sprintf("%s", uuid.NewV4())
+					u2, err := uuid.NewV4()
+					if err != nil {
+						fmt.Printf("Uuid went wrong: %s", err)
+						time.Sleep(5 * time.Second)
+						continue RECONNECT
+					}
+					msg.MessageId = fmt.Sprintf("%s", u2)
 					message := Message{qc, &msg, 0}
 					out <- message
 
@@ -133,8 +141,6 @@ func ackMessage(in <-chan Message) <-chan Message {
 		defer wg.Done()
 
 		for m := range in {
-			m.Printf("acker: received a msg")
-
 			if m.IsNotifySuccess() {
 				m.Ack()
 			} else if m.IsMaxRetry() {
@@ -217,6 +223,10 @@ func handleSignal(done chan<- struct{}) {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		PanicOnError(errors.New("Error loading .env file"))
+	}
 	// parse command line args
 	configFileName := flag.String("c", "config/queues.example.yml", "config file path")
 	logFileName := flag.String("log", "", "logging file, default STDOUT")

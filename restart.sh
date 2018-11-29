@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source config/env
-
 echo "kill old process ..."
 kill -QUIT `cat run/watchmen.pid`
 
