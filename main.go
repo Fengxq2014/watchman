@@ -1,9 +1,9 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 	"os/signal"
@@ -33,6 +33,8 @@ const (
 	HttpIdleConnTimeout     = 30  // default 90 in net/http
 )
 
+var retryTime = 0
+
 func receiveMessage(queues []*QueueConfig, done <-chan struct{}) <-chan Message {
 	out := make(chan Message, ChannelBufferLength)
 	var wg sync.WaitGroup
@@ -44,7 +46,13 @@ func receiveMessage(queues []*QueueConfig, done <-chan struct{}) <-chan Message 
 		for {
 			_, channel, err := setupChannel()
 			if err != nil {
-				PanicOnError(err)
+				if retryTime > 8 {
+					PanicOnError(errors.Wrap(err, fmt.Sprintf("retry %d times error", retryTime)))
+				}
+				time.Sleep(5*time.Second)
+				retryTime ++
+				log.Println("reconnect ...")
+				goto RECONNECT
 			}
 
 			msgs, err := channel.Consume(
@@ -66,7 +74,7 @@ func receiveMessage(queues []*QueueConfig, done <-chan struct{}) <-chan Message 
 						time.Sleep(5 * time.Second)
 						continue RECONNECT
 					}
-					u2, err := uuid.NewV4()
+					u2 := uuid.NewV4()
 					if err != nil {
 						fmt.Printf("Uuid went wrong: %s", err)
 						time.Sleep(5 * time.Second)
