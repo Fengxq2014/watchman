@@ -231,14 +231,15 @@ func handleSignal(done chan<- struct{}) {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		PanicOnError(errors.New("Error loading .env file"))
-	}
 	// parse command line args
 	configFileName := flag.String("c", "config/queues.example.yml", "config file path")
 	logFileName := flag.String("log", "", "logging file, default STDOUT")
+	envFile := flag.String("env", "", ".env file path")
 	flag.Parse()
+	err := godotenv.Load(*envFile)
+	if err != nil {
+		PanicOnError(errors.New("Error loading .env file"))
+	}
 
 	// write pid file
 	pidfile.Write()
